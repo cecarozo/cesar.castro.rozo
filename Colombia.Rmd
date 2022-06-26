@@ -1,0 +1,273 @@
+---
+title: "Focus Colombia"
+subtitle: <font size="4">Economic Developments and Forecasts
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+****
+##### Introduction {#pub}
+
+> This section presents the monthly updating forecasts for the GDP, inflation and monetary policy in Colombia. The forecasts are analyzed with time series techniques, especially Bottom-Up procedures in hierarchical structures. The methodology consider the idiosincracy of models at disaggregate level of the variables, with the advantage of including proper monthly indicators for each sector. The forecasts also include a scenario for the movements of one of the most important variable for the Colombian economy: the world oil price. The bottom of the section shows the expected key interest from the Central Bank, based on the Taylor rule.
+
+****
+
+##### See monthly reports in PDF (Spanish):\
+ \
+ 2018\
+· [September](9Septiembre18.pdf)\
+· [August](8Agosto18.pdf)\
+· [July](7Julio18.pdf)\
+· [June](6Junio18.pdf)\
+· [May](5Mayo18.pdf)\
+· [April](4Abril18.pdf)\
+· [March](3Marzo18.pdf)\
+· [February](2Febrero18.pdf)\
+· [January](1Enero18.pdf)\
+ \
+ 2017\
+· [December](12Diciembre17.pdf)\
+· [November](11Noviembre17.pdf)\
+· [October](10Octubre17.pdf)\
+· [September](9Septiembre17.pdf)\
+· [August](8Agosto17.pdf)\
+· [July](7Julio17.pdf)\
+· [June](6Junio17.pdf)\
+· [May](5Mayo17.pdf)\
+· [April](4Abril17.pdf)\
+· [March](3Marzo17.pdf)\
+· [February](2Febrero17.pdf)\
+· [January](1Enero17.pdf)\
+ \
+ 2016\
+· [December](12Diciembre16.pdf)\
+· [November](11Noviembre16.pdf)\
+· [October](10Octubre16.pdf)\
+· [September](9Septiembre16.pdf)\
+· [August](8Agosto16.pdf)\
+· [July](7Julio16.pdf)
+
+****
+```{r datac, echo=FALSE, warning=FALSE, results='hide', message=FALSE}
+libs <- c('readxl',            # leer excel
+          'DT',
+          'dygraphs',
+          'xtable'
+)
+lapply(libs, require, character.only=T)
+```
+
+#### GDP GROWTH: COLOMBIA
+
+##### Quarterly GDP growth: change in forecasts
+```{r, warning=F, results='asis', echo=FALSE, fig.align='center'}
+
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos6.xls", "figura2")
+
+colnames(data) <- c('actual', 'previo')
+data <- ts(data, start=c(2010,1), frequency = 4)
+
+dygraph(data, width = 900, height = 450) %>% 
+  dyRangeSelector() %>%
+  dyShading(from = "2018-6-1", to = "2019-12-1", color = '#F7E7CE')
+
+  # dyHighlight(highlightCircleSize = 5,
+  #             highlightSeriesBackgroundAlpha = 0.2,
+  #             hideOnMouseOut = FALSE) %>%
+```
+
+#### Innovations by sectors in the GDP growth of quarter 2, 2018
+
+```{r, echo=FALSE, warning=FALSE, results='asis', message=FALSE}
+# GDP: errors
+t.gerror <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos1.xls",
+                       "cuadro1")
+t.gerror <- as.matrix(t.gerror)
+rownames(t.gerror) <- c('Agriculture', 'Mining', 'Industry', 'Household services',
+                        'Construction', 'Trade', 'Comunication', 'Financial', 
+                        'Real state', 'Professional services', 'Public services',
+                        'Arts', 'Taxes', 'Private consumption', 
+                        'Public consumption', 'Gross capital formation',
+                        'Exports', 'Imports', 'TOTAL')
+colnames(t.gerror) <- c('Pesos', 'Observada', 'Predicción', 'Innovación')
+
+datatable(t.gerror,
+          options = list(dom = 't', pageLength = 19)) %>%
+          formatStyle(rows = c(T), columns = c(T,T,T,T), fontSize = '100%') %>%
+          formatStyle(c('Innovación'), backgroundColor = '#F7E7CE')
+```
+
+****
+#### Quarterly GDP growth: fan-chart
+```{r, warning=F, results='asis', echo=FALSE, fig.align='center'}
+
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos6.xls", "figura2")
+data <- data[1:34,1]  # ***** Increase one observed data!!!!!!
+data <- ts(data, start = c(2010, 1), frequency = 4)
+
+data.fan <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos5.xls", "figura1")
+data.fan <- t(data.fan)
+data.fan <- ts(data.fan, start = c(2018, 3), frequency = 4)
+
+prueba <- cbind(data, data, data, data, data, data, data, data, data)
+prueba <- rbind(prueba, data.fan)
+prueba <- ts(prueba, start = c(2010, 1), frequency = 4)
+colnames(prueba) <- c('U80', 'U60', 'U40', 'U20', 'point', 'L20', 'L40', 'L60', 'L80')
+
+dygraph(prueba, width = 900, height = 450) %>%
+  dySeries(c('L80', 'point', 'U80'), label = '80%', color = '#FF8040') %>%
+  dySeries(c('L60', 'point', 'U60'), label = '60%', color = '#FF8050') %>%
+  dySeries(c('L40', 'point', 'U40'), label = '40%', color = '#FF8060') %>%
+  dySeries(c('L20', 'point', 'U20'), label = '20%', color = '#FF8070') %>%
+  dyAxis("y", valueRange = c(0, 10)) %>%
+  dyLimit(0, color = "black")
+```
+
+****
+<!-- ### Innovations by sectors -->
+
+
+```{r GDPerror, echo=FALSE, warning=FALSE, results='asis', message=FALSE}
+colnames(t.gerror) <- c('--Weights--', '--Observed--', '--Forecast--',
+                        '--Innovation--')
+
+t.error.growth <- xtable(t.gerror,
+                         caption='year-on-year rates (Innovations are considered in relation with the forecasts estimated with information available at previous month)',
+                         label='errores.growth', align=c('lc|cc|c'),
+                          digits=1)
+
+# print(t.error.growth,
+      # booktabs=TRUE,
+      # size='scriptsize',
+      # caption.placement = "top",
+      # hline.after=c(-1, 0, 10, 15, 16),
+      # sanitize.text.function = function(x){x}, type="html")
+```
+
+****
+
+#### Dissagregated GDP Forecasts: Supply
+```{r, warning=FALSE, echo=FALSE, message=FALSE, results='asis'}
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos3.xls", "cuadro3")
+rownames(data) <- c('Agriculture', 'Mining', 'Industry', 'Household services',
+                    'Construction', 'Trade', 'Comunication', 'Financial', 
+                    'Real estate', 'Professional services', 'Public services',
+                    'Arts', 'Taxes', 'TOTAL')
+datatable(data,
+          options = list(dom = 't', pageLength = 14)) %>%
+          formatStyle(rows = c(T), columns = c(T,T,T,T,T,T,T), fontSize = '100%') %>%
+          formatStyle(c('18-3', '18-4', '19-1', '19-2'), backgroundColor = '#F7E7CE')
+```
+
+****
+#### Dissagregated GDP Forecasts: Demand
+
+```{r, warning=FALSE, echo=FALSE, message=FALSE, results='asis'}
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos7.xls", "cuadro5")
+rownames(data) <- c('Private consumption', 'Public consumption',
+                              'Gross capital formation', 'Exports', 'Imports',
+                              'TOTAL')
+datatable(data,
+          options = list(dom = 't', pageLength = 14)) %>%
+          formatStyle(rows = c(T), columns = c(T,T,T,T,T,T,T), fontSize = '100%') %>%
+          formatStyle(c('18-3', '18-4', '19-1', '19-2'), backgroundColor = '#F7E7CE')
+```
+
+****
+##### INFLATION: COLOMBIA
+
+****
+#### Monthly inflation: change in forecasts
+```{r, warning=F, results='asis', echo=FALSE, fig.align='center'}
+
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos10.xls", "figura3")
+library(dygraphs)
+
+colnames(data) <- c('actual', 'previo')
+data <- ts(data, start=c(2010,1), frequency = 12)
+
+dygraph(data, width = 900, height = 450) %>% 
+  dyHighlight(highlightCircleSize = 5,
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>%
+  dyRangeSelector() %>%
+  dyShading(from = "2018-8-1", to = "2019-12-1", color = '#F7E7CE')
+```
+
+****
+#### Innovations by sectors in the inflation of August, 2018
+```{r, warning=FALSE, echo=FALSE, message=FALSE, results='asis'}
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos8.xls", "cuadro6")
+rownames(data) <- c('TOTAL', 'CORE', 'FOOD', 'Processed food', 'Non-processed food',
+                    'Non-energy industrial goods', 'Services', 'Energy')
+
+datatable(data,
+          options = list(dom = 't', pageLength = 14)) %>%
+          formatStyle(rows = c(T), columns = c(T,T,T,T), fontSize = '100%') %>%
+          formatStyle(c('Innovación'), backgroundColor = '#F7E7CE')
+```
+
+****
+#### Monthly inflation: fan-chart
+```{r, warning=F, results='asis', echo=FALSE, fig.align='center'}
+
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos10.xls", "figura3")
+data <- data[1:104,1]  # ***** Increase one observed data!!!!!!
+data <- ts(data, start = c(2010, 1), frequency = 12)
+
+data.fan <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos11.xls", "figura5")
+data.fan <- t(data.fan)
+data.fan <- ts(data.fan, start = c(2018, 10), frequency = 12)
+
+prueba <- cbind(data, data, data, data, data, data, data, data, data)
+prueba <- rbind(prueba, data.fan)
+prueba <- ts(prueba, start = c(2010, 1), frequency = 12)
+colnames(prueba) <- c('U80', 'U60', 'U40', 'U20', 'point', 'L20', 'L40', 'L60', 'L80')
+
+dygraph(prueba, width = 900, height = 450) %>%
+  dySeries(c('L80', 'point', 'U80'), label = '80%', color = '#FF8040') %>%
+  dySeries(c('L60', 'point', 'U60'), label = '60%', color = '#FF8050') %>%
+  dySeries(c('L40', 'point', 'U40'), label = '40%', color = '#FF8060') %>%
+  dySeries(c('L20', 'point', 'U20'), label = '20%', color = '#FF8070') %>%
+  dyAxis("y", valueRange = c(0, 10)) %>%
+  dyLimit(0, color = "black")
+```
+
+****
+<!-- ### Innovations by sectors -->
+
+****
+#### Disaggregated Inflation Forecasts
+```{r, warning=FALSE, echo=FALSE, message=FALSE, results='asis'}
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos9.xls",
+                       "cuadro7")
+data <- as.matrix(data[1:5,])
+data <- cbind(c('2015', '2016', '2017', '2018', '2019'), data)
+colnames(data) <- c('Año', 'TOTAL', 'BÁSICA', 'Alimentos', 'Manufacturas',
+                    'Servicios', 'Energía')
+
+datatable(data,
+          options = list(dom = 't', pageLength = 14)) %>%
+          formatStyle('Año', target = 'row',
+                      backgroundColor = styleEqual(c(2018, 2019), c('#F7E7CE',
+                                                                    '#F7E7CE')))
+```
+
+****
+##### SYSTEMATIC MONETARY POLICY: COLOMBIA
+
+****
+```{r, warning=F, results='asis', echo=FALSE, fig.align='center'}
+
+data <- read_excel("/Users/cesarcastrorozo/Dropbox/SpinOff/colombia/datos12.xls",
+                       "figura8")
+
+data <- ts(data[-1:-12,], start=c(2007,1), frequency = 12)
+
+dygraph(data, width = 900, height = 450) %>% 
+  dyRangeSelector() %>%
+  dyShading(from = "2018-9-1", to = "2019-12-1", color = '#F7E7CE')
+```
